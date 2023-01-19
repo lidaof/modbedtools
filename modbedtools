@@ -1,0 +1,66 @@
+#!/usr/bin/python3
+"""
+main program for modbedtools to generate track files for visualization on WashU Epigenome Browser.
+"""
+
+import time
+import argparse
+from modbed import version
+from modbed import modbed
+
+
+def bam2mod_wrap(args):
+    modbed.bam2mod(args.bamfile, args.output, args.cutoff)
+
+
+def addbg_wrap(args):
+    modbed.addbg(args.bedfile, args.fasta_file, args.output, args.base)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        prog='modbedtools', description='Python command line tool to generate modbed files for visualization on WashU Epigenome Browser.')
+
+    parser.add_argument('--version', '-v', action='version',
+                        version='%(prog)s ' + version.__version__)
+
+    subparsers = parser.add_subparsers(title='subcommands',
+                                       description='valid subcommands',
+                                       help='additional help')
+
+    # bam2mod
+    parser_bam2mod = subparsers.add_parser(
+        'bam2mod', help='convert bam to modbed')
+    parser_bam2mod.add_argument(
+        'bamfile', help='bam file with MM/ML tags')
+    parser_bam2mod.add_argument('-c', '--cutoff', type=float,
+                                help='methylation cutoff, >= cutoff as methylated. default: 0.5', default=0.5)
+    parser_bam2mod.add_argument(
+        '-o', '--output', help='output file name, a suffix .modbed will be added. default: output', default='output')
+    parser_bam2mod.set_defaults(func=bam2mod_wrap)
+
+    # addbg
+    parser_addbg = subparsers.add_parser(
+        'addbg', help='add backgroud bases given modified bases and reference sequence')
+    parser_addbg.add_argument(
+        'bedfile', help='bed file with modified base positions, can be gzipped')
+    parser_addbg.add_argument(
+        'fasta_file', help='fasta file contains reference sequence, can be gzipped')
+    parser_addbg.add_argument('-b', '--base', choices=['C', 'A', 'c', 'a'], default='C',
+                              const='C',
+                              nargs='?',
+                              type=str.upper,
+                              help='modification base, case in-sensitive, C/c are same. (default: %(default)s)')
+    parser_addbg.add_argument(
+        '-o', '--output', help='output file name, a suffix .modbed will be added. default: output', default='output')
+    parser_addbg.set_defaults(func=addbg_wrap)
+
+    args = parser.parse_args()
+    args_len = len(vars(args))
+    if args_len == 0:
+        parser.print_help()
+    if hasattr(args, 'func'):
+        start_time = time.time()
+        args.func(args)
+        end_time = time.time()
+        print(f"[info] done! It took {(end_time - start_time)/3600.} hours")
