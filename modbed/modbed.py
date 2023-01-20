@@ -14,7 +14,11 @@ def process_read(read, cutoff):
         chrom = read.reference_name
         start = read.reference_start
         end = read.reference_end
-        seq = read.query_sequence
+        align = read.get_aligned_pairs(matches_only=True)
+        alignd = {}
+        for x in align:
+            # aligned dict, key: query pos in read, value: ref pos
+            alignd[x[0]] = x[1]
         modbase_key = ('C', 1, 'm') if read.is_reverse else ('C', 0, 'm')
         if modbase_key not in read.modified_bases:
             return []
@@ -24,16 +28,17 @@ def process_read(read, cutoff):
         modbase_methy_list = []
         modbase_unmet_list = []
         for j in modbase_list:
-            if j[1]/255. >= cutoff:  # methylated base
-                if seq[j[0]].upper() == 'C':
-                    modbase_methy_list.append(str(j[0]))
+            if j[0] in alignd:
+                if j[1]/255. >= cutoff:  # methylated base
+                    if read.is_reverse:
+                        modbase_methy_list.append(str(start - alignd[j[0]]))
+                    else:
+                        modbase_methy_list.append(str(alignd[j[0]] - start))
                 else:
-                    modbase_methy_list.append(str(-j[0]))
-            else:
-                if seq[j[0]].upper() == 'C':
-                    modbase_unmet_list.append(str(j[0]))
-                else:
-                    modbase_unmet_list.append(str(-j[0]))
+                    if read.is_reverse:
+                        modbase_unmet_list.append(str(start - alignd[j[0]]))
+                    else:
+                        modbase_unmet_list.append(str(alignd[j[0]] - start))
         if len(modbase_methy_list):
             modbase_methy_string = ','.join(modbase_methy_list)
         if len(modbase_unmet_list):
@@ -48,7 +53,7 @@ def process_read(read, cutoff):
 def bam2mod(bamfile, outfile, cutoff=0.5):
     bam = pysam.AlignmentFile(bamfile, 'rb', check_sq=False)
     if os.path.exists(bamfile+'.bai'):
-        num_reads = bam.count()  # this need index
+        num_reads = bam.count()  # this needs index
         print(f'[info] total reads: {num_reads}', file=sys.stderr)
     outf = '{}.modbed'.format(outfile)
     print(f'[info] writing file {outf}', file=sys.stderr)
@@ -107,6 +112,7 @@ def addbg(bedfile, fasta_file, output, base):
             chrom = t[0]
             start = int(t[1])
             end = int(t[2])
+            # the fiber-seq data should not count first and last one as told
             bs = t[-1].split(',')[1:-1]
             # bs = t[-1].split(',')
             bs2 = [int(x) for x in bs]
