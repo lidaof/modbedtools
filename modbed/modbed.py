@@ -109,11 +109,13 @@ def addbg(bedfile, fasta_file, output, base):
     with xopen(bedfile) as fin, open(outf, 'w') as out:
         for line in fin:
             t = line.strip().split('\t')
+            # the fiber-seq data should not count first and last one as told
+            bs = t[-1].split(',')[1:-1]
+            if not len(bs):
+                continue
             chrom = t[0]
             start = int(t[1])
             end = int(t[2])
-            # the fiber-seq data should not count first and last one as told
-            bs = t[-1].split(',')[1:-1]
             # bs = t[-1].split(',')
             bs2 = [int(x) for x in bs]
             # contains start position in genome for each methylated base

@@ -1,0 +1,12 @@
+LICENSE
+README.md
+modbedtools
+setup.py
+modbed/__init__.py
+modbed/modbed.py
+modbed/version.py
+modbedtools.egg-info/PKG-INFO
+modbedtools.egg-info/SOURCES.txt
+modbedtools.egg-info/dependency_links.txt
+modbedtools.egg-info/requires.txt
+modbedtools.egg-info/top_level.txt

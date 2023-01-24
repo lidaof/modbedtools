@@ -2,9 +2,22 @@
 
 Requires Python >= 3.6
 
-A python command line tool to generate modbed files for visualization on WashU Epigenome Browser
+A python command line tool to generate modbed files for visualization on [WashU Epigenome Browser](https://epigenomegateway.wustl.edu/).
 
 This tool parses MM/ML tag from BAM files generated from 3rd generation sequencing platform like [Oxford Nanopore](https://nanoporetech.com/applications/investigation/epigenetics) and [PacBio](https://www.pacb.com/products-and-services/applications/epigenetics/) devices using the [pysam](https://pysam.readthedocs.io/en/latest) package.
+
+## installation
+
+Install through [pypi modbedtools project page](https://pypi.org/project/modbedtools/) (version number might change):
+
+```
+$ pip install modbedtools
+Collecting modbedtools
+  Downloading modbedtools-0.1.0-py3-none-any.whl (6.8 kB)
+Requirement already satisfied: pysam in /opt/apps/python3/lib/python3.7/site-packages (from modbedtools) (0.19.1)
+Installing collected packages: modbedtools
+Successfully installed modbedtools-0.1.0
+```
 
 ## modbed format
 
@@ -90,7 +103,7 @@ chr11   5193360   5212743   {middle columns can be anything or none}    21,273,2
 the data above is adopted from one of the [Fiber-seq](https://www.science.org/doi/abs/10.1126/science.aaz1646) data from [John Stamatoyannopoulos lab](http://www.stamlab.org/).
 
 ```bash
-modbedtools addbg -b A fiber_seq_HBG_DS182418_2022dec07.bed12 chr11.fa.gz -o fibe-seq-HBG_DS182418
+modbedtools addbg -b A tracks_ordered_DS182417.txt chr11.fa.gz -o fiber-seq-DS182417
 ```
 
 ## track formating
@@ -104,4 +117,4 @@ bgzip hifi.modbed
 tabix -p bed hifi.modbed.gz
 ```
 
-Then the .gz and .gz.tbi files can be placed into any web server for hosting and the URL to the .gz file can be used for Visualization in WashU Epigenome Browser.
+Then the .gz and .gz.tbi files can be placed into any web server for hosting and the URL to the .gz file can be used for Visualization in [WashU Epigenome Browser](https://epigenomegateway.wustl.edu/).
