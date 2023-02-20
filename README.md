@@ -125,36 +125,36 @@ We put some example modbed files on this location (<https://target.wustl.edu/dli
 
 First we will go to the Browser by navigating your web browser to <https://epigenomegateway.wustl.edu/browser/>, click hg38 for the genome.
 
-![](./img/m1.png | width="800")
+![](./img/m1.png)
 
 In the test data, there are m6A signals around beta globin locus, we will use the gene search function, type in HBG2 and choose the first hit in refGene:
 
-![](./img/m2.png | width="800")
+![](./img/m2.png)
 
 Go to Tracks menu, click Remote Tracks:
 
-![](./img/m3.png | width="300")
+![](./img/m3.png)
 
 Choose modbed from the track type dropdown list, paste the URL above:
 
-![](./img/m4.png | width="800")
+![](./img/m4.png)
 
 This is the default view after you submit this modbed file, each row represents a fiber, each bar on each fiber means methylation level, gray bar indicates there is an adenine base but it’s unmethylated. Mouse over each bar can show the tooltip.
 
-![](./img/m5.png | width="800")
+![](./img/m5.png)
 
 Zoom in 5-fold multiple times, you can see the methylation status at base pair level resolution, each filled circle means methylated, empty circle means unmethylated, orange circle above the line means it’s in + strand, blue in – strand.
 
-![](./img/m6.png | width="800")
+![](./img/m6.png)
 
 Zoom out multiple times from the default view, can clearly view m6A methylation profile over each fiber:
 
-![](./img/m7.png | width="800")
+![](./img/m7.png)
 
 Zoom out further, signals from all fibers are summarized to one bar plot, gray line indicates read/fiber density, bar height means methylation level:
 
-![](./img/m8.png | width="800")
+![](./img/m8.png)
 
 At each view, right click the track, can change view to heatmap style like in IGV:
 
-![](./img/m9.png | width="800")
+![](./img/m9.png)
