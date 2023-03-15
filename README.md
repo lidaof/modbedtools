@@ -4,13 +4,16 @@ Requires Python >= 3.6
 
 A python command line tool to generate modbed files for visualization on [WashU Epigenome Browser](https://epigenomegateway.wustl.edu/).
 
-This tool parses MM/ML tag from BAM files generated from 3rd generation sequencing platform like [Oxford Nanopore](https://nanoporetech.com/applications/investigation/epigenetics) and [PacBio](https://www.pacb.com/products-and-services/applications/epigenetics/) devices using the [pysam](https://pysam.readthedocs.io/en/latest) package.
+This tools has 2 modules/subcommands:
+
+1. parse MM/ML tag from BAM files generated from 3rd generation sequencing platform like [Oxford Nanopore](https://nanoporetech.com/applications/investigation/epigenetics) and [PacBio](https://www.pacb.com/products-and-services/applications/epigenetics/) devices using the [pysam](https://pysam.readthedocs.io/en/latest) package.
+2. add background canonical base positions given modified bases.
 
 ## installation
 
 Install through [pypi modbedtools project page](https://pypi.org/project/modbedtools/) (version number might change):
 
-```
+```sh
 $ pip install modbedtools
 Collecting modbedtools
   Downloading modbedtools-0.1.0-py3-none-any.whl (6.8 kB)
@@ -29,13 +32,17 @@ chr11   5174543 5196481 187,271,508,570,576,593,901,1729,2826,3216,...     568,6
 
 Each row in this bed-based format is a long read, the columns are:
 
-* chromosome
-* start position of this read
-* end position of this read
-* methylated/modified base positions, relative to start
-* unmethylated/unmodified/canonical base positions, relative to start
+* chromosome (required)
+* start position of this read (required)
+* end position of this read (required)
+* read name or id or something to tag this read (optional)
+* sort key, this can be used for sort the reads from top to bottom when viewing in Browser (optional)
+* methylated/modified base positions, relative to start (required)
+* unmethylated/unmodified/canonical base positions, relative to start (required)
 
 All positions are 0 based.
+
+5-7 columns of data can be provided, if user provides 6 columns, 4<sup>th</sup> column will be used as sort key, read identifier will be default as <code>chrom:start-end</code>. If 5 columns of data is provided, both read id and sort key are default to <code>chrom:start-end</code>.
 
 ## commands
 
@@ -100,10 +107,10 @@ example input:
 chr11   5193360   5212743   {middle columns can be anything or none}    21,273,296,307,440,461,475,688,689,694,863...
 ```
 
-the data above is adopted from one of the [Fiber-seq](https://www.science.org/doi/abs/10.1126/science.aaz1646) data from [John Stamatoyannopoulos lab](http://www.stamlab.org/).
+The example data below is adopted from one of the [Fiber-seq](https://www.science.org/doi/abs/10.1126/science.aaz1646) data from [John Stamatoyannopoulos lab](http://www.stamlab.org/).
 
 ```bash
-modbedtools addbg -b A tracks_ordered_DS182417.txt chr11.fa.gz -o fiber-seq-DS182417
+modbedtools addbg -b A GSM4411218_tracks_m6A_DS75167.dm6.bed.gz dm6.fa.gz -o GSM4411218_tracks_m6A_DS75167
 ```
 
 ## track formating
@@ -121,13 +128,13 @@ Then the .gz and .gz.tbi files can be placed into any web server for hosting and
 
 ## visualization
 
-We put some example modbed files on this location (<https://target.wustl.edu/dli/modbed/>) for this tutorial, and we will use <https://target.wustl.edu/dli/modbed/fiber-seq-DS182417.modbed.gz> for the next step by step tutorial.
+In this tutorial, and we will use [hifi-test.modbed.gz](https://target.wustl.edu/dli/modbed/hifi-test.modbed.gz) for the next step by step tutorial.
 
 First we will go to the Browser by navigating your web browser to <https://epigenomegateway.wustl.edu/browser/>, click hg38 for the genome.
 
 ![](./img/m1.png)
 
-In the test data, there are m6A signals around beta globin locus, we will use the gene search function, type in HBG2 and choose the first hit in refGene:
+In the test data, we will check methylation signal over *KDM2A* gene, we will use the gene search function, type in `KDM2A` and choose the first hit in refGene:
 
 ![](./img/m2.png)
 
@@ -139,7 +146,7 @@ Choose modbed from the track type dropdown list, paste the URL above:
 
 ![](./img/m4.png)
 
-This is the default view after you submit this modbed file, each row represents a fiber, each bar on each fiber means methylation level, gray bar indicates there is an adenine base but it’s unmethylated. Mouse over each bar can show the tooltip.
+This is the default view after you submit this modbed file, each row represents a long read, each bar on each read means methylation level, gray bar indicates there is an cytosine base but it’s unmethylated. Mouse over each bar can show the tooltip.
 
 ![](./img/m5.png)
 
@@ -147,11 +154,11 @@ Zoom in 5-fold multiple times, you can see the methylation status at base pair l
 
 ![](./img/m6.png)
 
-Zoom out multiple times from the default view, can clearly view m6A methylation profile over each fiber:
+Zoom out multiple times from the default view, can clearly view m6A methylation profile over each read:
 
 ![](./img/m7.png)
 
-Zoom out further, signals from all fibers are summarized to one bar plot, gray line indicates read/fiber density, bar height means methylation level:
+Zoom out further, signals from all reads are summarized to one bar plot, gray line indicates read density, bar height means methylation level:
 
 ![](./img/m8.png)
 

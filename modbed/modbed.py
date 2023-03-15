@@ -103,6 +103,9 @@ def read_fa(fasta_file):
 
 
 def addbg(bedfile, fasta_file, output, base):
+    sbase = base.lower()
+    rc_base = rct[base]
+    rc_sbase = rct[base].lower()
     fa = read_fa(fasta_file)
     outf = '{}.modbed'.format(output)
     print(f'[info] writing file {outf}', file=sys.stderr)
@@ -126,22 +129,22 @@ def addbg(bedfile, fasta_file, output, base):
             for x in range(start, end+1):
                 if x in bs3:
                     # a methylated base
-                    if s[x].upper() == base:
+                    if s[x] == base or s[x] == sbase:
                         # + strand
                         c1.append(str(x-start))
-                    elif s[x].upper() == rct[base]:
+                    elif s[x] == rc_base or s[x] == rc_sbase:
                         # - strand
                         c1.append(str(start-x))
                 else:
                     # an unmethylated base but need check seq base
-                    if s[x].upper() == base:
+                    if s[x] == base or s[x] == sbase:
                         # + strand
                         c2.append(str(x-start))
-                    elif s[x].upper() == rct[base]:
+                    elif s[x] == rc_base or s[x] == rc_sbase:
                         # - strand
                         c2.append(str(start-x))
             out.write(
-                f"{chrom}\t{start}\t{end}\t{','.join(c1)}\t{','.join(c2)}\n")
+                f"{chrom}\t{start}\t{end}\t{t[3]}\t{t[4]}\t{','.join(c1)}\t{','.join(c2)}\n")
 
 
 def main():
