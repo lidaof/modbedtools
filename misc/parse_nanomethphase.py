@@ -31,7 +31,7 @@ usage: python3 {sys.argv[0]} bamfile nanopolish_methy_call_file
     with open(sys.argv[2]) as fin:
         for line in fin:
             t = line.strip().split('\t')
-            lik = float(5)
+            lik = float(t[5])
             pos = int(t[2])
             rid = t[4]
             if rid not in m:

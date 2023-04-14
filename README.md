@@ -113,6 +113,16 @@ The example data below is adopted from one of the [Fiber-seq](https://www.scienc
 modbedtools addbg -b A GSM4411218_tracks_m6A_DS75167.dm6.bed.gz dm6.fa.gz -o GSM4411218_tracks_m6A_DS75167
 ```
 
+### misc scripts
+
+Convert [NanoMethPhase example data](https://github.com/vahidAK/NanoMethPhase/tree/master/Example_Data) to modbed format.
+
+```bash
+python3 ../misc/parse_nanomethphase.py NA19240_chr21_39000000-40000000.bam NA19240_chr21_39000000-40000000_MethylationCalls.tsv
+```
+
+If need support of other methylation callers please submit an issue request.
+
 ## track formating
 
 [Tabix](http://www.htslib.org/doc/tabix.html) is used to compress and index the modbed files generated in last steps.
