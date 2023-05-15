@@ -2,11 +2,11 @@
 
 Requires Python >= 3.6
 
-A python command line tool to generate modbed files for visualization on [WashU Epigenome Browser](https://epigenomegateway.wustl.edu/).
+A python command line tool to generate modbed files for visualization on the [WashU Epigenome Browser](https://epigenomegateway.wustl.edu/).
 
 This tools has 2 modules/subcommands:
 
-1. parse MM/ML tag from BAM files generated from 3rd generation sequencing platform like [Oxford Nanopore](https://nanoporetech.com/applications/investigation/epigenetics) and [PacBio](https://www.pacb.com/products-and-services/applications/epigenetics/) devices using the [pysam](https://pysam.readthedocs.io/en/latest) package.
+1. parse MM/ML tag from BAM files generated from 3<sup>rd</sup> generation sequencing platform like [Oxford Nanopore](https://nanoporetech.com/applications/investigation/epigenetics) and [PacBio](https://www.pacb.com/products-and-services/applications/epigenetics/) devices using the [pysam](https://pysam.readthedocs.io/en/latest) package.
 2. add background canonical base positions given modified bases.
 
 ## installation
@@ -25,24 +25,25 @@ Successfully installed modbedtools-0.1.0
 ## modbed format
 
 ```sh
-chr11   5173273 5195306 -110,-266,-1459,-1780,-1840,-1842,-1848,-1865,-1928,-1936,... -396,-1543,-3222,-4195,-4319,-4692,-5352,-5366,-5523,-5838,...
-chr11   5174507 5194585 223,605,607,613,630,693,701,936,1761,3369,...  307,544,1280,2017,2859,2994,3116,3249,3790,3935,...
-chr11   5174543 5196481 187,271,508,570,576,593,901,1729,2826,3216,...     568,656,664,1985,2961,3083,3703,4115,4286,4882,...
+chr11   5173273 5195306 read_id score + -110,-266,-1459,-1780,-1840,-1842,-1848,-1865,-1928,-1936,... -396,-1543,-3222,-4195,-4319,-4692,-5352,-5366,-5523,-5838,...
+chr11   5174507 5194585 read_id score +  223,605,607,613,630,693,701,936,1761,3369,...  307,544,1280,2017,2859,2994,3116,3249,3790,3935,...
+chr11   5174543 5196481 read_id score +  187,271,508,570,576,593,901,1729,2826,3216,...     568,656,664,1985,2961,3083,3703,4115,4286,4882,...
 ```
 
 Each row in this bed-based format is a long read, the columns are:
 
-* chromosome (required)
-* start position of this read (required)
-* end position of this read (required)
-* read name or id or something to tag this read (optional)
-* sort key, this can be used for sort the reads from top to bottom when viewing in Browser (optional)
-* methylated/modified base positions, relative to start (required)
-* unmethylated/unmodified/canonical base positions, relative to start (required)
+* chromosome
+* start position of this read
+* end position of this read
+* read name or id or something to tag this read
+* score (number), this can be used to sort the reads from top to bottom when viewing in Browser
+* strand (+ or - for mapping direction)
+* methylated/modified base positions, relative to start, a dot `.` can be used if there is no modified bases
+* unmethylated/unmodified/canonical base positions, relative to start, a dot `.` can be used if there is no unmodified bases
 
 All positions are 0 based.
 
-5-7 columns of data can be provided, if user provides 6 columns, 4<sup>th</sup> column will be used as sort key, read identifier will be default as <code>chrom:start-end</code>. If 5 columns of data is provided, both read id and sort key are default to <code>chrom:start-end</code>.
+**8** columns of data need be provided, 4<sup>th</sup> column can be read identifiers or use <code>chrom:start-end</code>. 5<sup>th</sup> column is score which is used to sort reads vertically in the view region.
 
 ## commands
 
@@ -72,13 +73,15 @@ convert bam files with MM/ML tags to modbed format.
 
 ```bash
 modbedtools bam2mod -h             
-usage: modbedtools bam2mod [-h] [-c CUTOFF] [-o OUTPUT] bamfile
+usage: modbedtools bam2mod [-h] [-b [{C,A,c,a}]] [-c CUTOFF] [-o OUTPUT] bamfile
 
 positional arguments:
   bamfile               bam file with MM/ML tags
 
 optional arguments:
   -h, --help            show this help message and exit
+  -b [{C,A,c,a}], --base [{C,A,c,a}]
+                        modification base, case in-sensitive, C/c are same. (default: C)
   -c CUTOFF, --cutoff CUTOFF
                         methylation cutoff, >= cutoff as methylated. default: 0.5
   -o OUTPUT, --output OUTPUT
@@ -99,7 +102,7 @@ modbedtools bam2mod remora-test.bam -o remora
 
 For data provided methylated bases, given a reference genome fasta sequence, add the unmethylated bases from genome sequence as background, **this assumes all other specified bases from genome are unmethylated/unmodified**.
 
-The input file should be in bed format, the last column saves the comma separated relative base position with modification (0 based).
+The input file should be in bed format, the last 2 columns save the comma separated relative base positions with modifications (0 based).
 
 example input:
 
@@ -140,7 +143,7 @@ Then the .gz and .gz.tbi files can be placed into any web server for hosting and
 
 In this tutorial, and we will use [hifi-test.modbed.gz](https://target.wustl.edu/dli/modbed/hifi-test.modbed.gz) for the next step by step tutorial.
 
-First we will go to the Browser by navigating your web browser to <https://epigenomegateway.wustl.edu/browser/>, click hg38 for the genome.
+First we will go to the Browser by navigating your web browser to <https://epigenomegateway.wustl.edu/browser/>, click `hg38` for the genome.
 
 ![](./img/m1.png)
 

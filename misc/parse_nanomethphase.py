@@ -14,8 +14,9 @@ def get_reads_mapping(bamfile):
     bam = pysam.AlignmentFile(bamfile, 'rb', check_sq=False)
     for read in bam.fetch(until_eof=True):
         if not (read.is_supplementary or read.is_secondary or read.is_unmapped):
+            strand = '-' if read.is_reverse else '+'
             d[read.query_name] = [read.reference_name,
-                                  read.reference_start, read.reference_end]
+                                  read.reference_start, read.reference_end, strand]
     return d
 
 
@@ -44,9 +45,14 @@ usage: python3 {sys.argv[0]} bamfile nanopolish_methy_call_file
         for k in m:
             if not k in d:
                 continue
-            chrom, start, end = d[k]
+            chrom, start, end, strand = d[k]
             ms, um = m[k]
-            mss = [str(x-start) for x in ms]
-            ums = [str(x-start) for x in um]
-            fout.write(
-                f'{chrom}\t{start}\t{end}\t{k}\t{",".join(mss)}\t{",".join(ums)}\n')
+            mss = '.'
+            ums = '.'
+            if len(ms):
+                mss = [str(x-start) for x in ms]
+            if len(um):
+                ums = [str(x-start) for x in um]
+            if mss != '.' or ums != '.':
+                fout.write(
+                    f'{chrom}\t{start}\t{end}\t{k}\t0\t{strand}\t{",".join(mss)}\t{",".join(ums)}\n')

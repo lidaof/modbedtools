@@ -4,64 +4,83 @@ import gzip
 import pysam
 
 
-def process_read(read, cutoff):
+def process_read(read, cutoff, base, cpg):
     '''
-    convert bam file with Ml/Mm tags to bed file with methylation information in format: chr, start, end, methylated position array, unmethylated position array.
+    convert bam file with Ml/Mm tags to bed file with methylation information in format: chr, start, end, name, score, strand, methylated position array, unmethylated position array.
     One line per read.
+    if cpg mode is on: for pacbio bam, it assumes C in both strands of an CpG has same methylation level, both C will show at bp level vis
     '''
     if not (read.is_supplementary or read.is_secondary or read.is_unmapped):
         line = []
         chrom = read.reference_name
         start = read.reference_start
         end = read.reference_end
+        name = read.query_name
         align = read.get_aligned_pairs(matches_only=True)
         alignd = {}
         for x in align:
             # aligned dict, key: query pos in read, value: ref pos
             alignd[x[0]] = x[1]
         modbase_key = ('C', 1, 'm') if read.is_reverse else ('C', 0, 'm')
+        if base == 'A':
+            modbase_key = ('T', 1, 'a') if read.is_reverse else ('A', 0, 'a')
         if modbase_key not in read.modified_bases:
             return []
         modbase_list = read.modified_bases[modbase_key]
-        modbase_methy_string = ''
-        modbase_unmet_string = ''
+        modbase_methy_string = '.'
+        modbase_unmet_string = '.'
         modbase_methy_list = []
         modbase_unmet_list = []
+        strand = '-' if read.is_reverse else '+'
         for j in modbase_list:
             if j[0] in alignd:
                 if j[1]/255. >= cutoff:  # methylated base
                     if read.is_reverse:
+                        if base == 'C' and cpg:
+                            modbase_methy_list.append(
+                                str(alignd[j[0]] - start - 1))
                         modbase_methy_list.append(str(start - alignd[j[0]]))
                     else:
                         modbase_methy_list.append(str(alignd[j[0]] - start))
+                        if base == 'C' and cpg:
+                            modbase_methy_list.append(
+                                str(-(alignd[j[0]] - start+1)))
                 else:
                     if read.is_reverse:
+                        if base == 'C' and cpg:
+                            modbase_unmet_list.append(
+                                str(alignd[j[0]] - start - 1))
                         modbase_unmet_list.append(str(start - alignd[j[0]]))
                     else:
                         modbase_unmet_list.append(str(alignd[j[0]] - start))
+                        if base == 'C' and cpg:
+                            modbase_unmet_list.append(
+                                str(-(alignd[j[0]] - start+1)))
         if len(modbase_methy_list):
             modbase_methy_string = ','.join(modbase_methy_list)
         if len(modbase_unmet_list):
             modbase_unmet_string = ','.join(modbase_unmet_list)
-        line = [chrom, str(start), str(end), modbase_methy_string,
+        line = [chrom, str(start), str(end), name, '0', strand, modbase_methy_string,
                 modbase_unmet_string]
         return line
     else:
         return []
 
 
-def bam2mod(bamfile, outfile, cutoff=0.5):
+def bam2mod(bamfile, outfile, cutoff=0.5, base='C', cpg=False):
     bam = pysam.AlignmentFile(bamfile, 'rb', check_sq=False)
     if os.path.exists(bamfile+'.bai'):
         num_reads = bam.count()  # this needs index
         print(f'[info] total reads: {num_reads}', file=sys.stderr)
-    outf = '{}.modbed'.format(outfile)
+    cpgtag = '.cpg' if cpg else ''
+    outf = f'{outfile}{cpgtag}.modbed'
     print(f'[info] writing file {outf}', file=sys.stderr)
     with open(outf, "w") as out:
         for read in bam.fetch(until_eof=True):  # this makes bam index optional
-            items = process_read(read, cutoff)
+            items = process_read(read, cutoff, base, cpg)
             if len(items):
-                if items[3] or items[4]:  # for output, need either has modified base or unmodified base
+                # for output, need either has modified base or unmodified base
+                if items[3] != '.' or items[4] != '.':
                     line = '\t'.join(items)
                     out.write(line+'\n')
 
@@ -126,6 +145,8 @@ def addbg(bedfile, fasta_file, output, base):
             s = fa[chrom]  # the sequence
             c1 = []
             c2 = []
+            c1str = '.'
+            c2str = '.'
             for x in range(start, end+1):
                 if x in bs3:
                     # a methylated base
@@ -143,8 +164,13 @@ def addbg(bedfile, fasta_file, output, base):
                     elif s[x] == rc_base or s[x] == rc_sbase:
                         # - strand
                         c2.append(str(start-x))
-            out.write(
-                f"{chrom}\t{start}\t{end}\t{t[3]}\t{t[4]}\t{','.join(c1)}\t{','.join(c2)}\n")
+            if len(c1):
+                c1str = ','.join(c1)
+            if len(c2):
+                c2str = ','.join(c2)
+            if c1str != '.' or c2str != '.':
+                out.write(
+                    f"{chrom}\t{start}\t{end}\t{t[3]}\t{t[4]}\t'+'\t{c1str}\t{c2str}\n")
 
 
 def main():
