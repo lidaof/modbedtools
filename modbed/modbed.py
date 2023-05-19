@@ -170,7 +170,7 @@ def addbg(bedfile, fasta_file, output, base):
                 c2str = ','.join(c2)
             if c1str != '.' or c2str != '.':
                 out.write(
-                    f"{chrom}\t{start}\t{end}\t{t[3]}\t{t[4]}\t'+'\t{c1str}\t{c2str}\n")
+                    f"{chrom}\t{start}\t{end}\t{t[3]}\t{t[4]}\t+\t{c1str}\t{c2str}\n")
 
 
 def main():

@@ -36,7 +36,7 @@ Each row in this bed-based format is a long read, the columns are:
 * start position of this read
 * end position of this read
 * read name or id or something to tag this read
-* score (number), this can be used to sort the reads from top to bottom when viewing in Browser
+* score (number), this can be used to sort the reads from top to bottom when viewing in Browser, can use 0 if no need to sort
 * strand (+ or - for mapping direction)
 * methylated/modified base positions, relative to start, a dot `.` can be used if there is no modified bases
 * unmethylated/unmodified/canonical base positions, relative to start, a dot `.` can be used if there is no unmodified bases
@@ -48,7 +48,7 @@ All positions are 0 based.
 ## commands
 
 ```bash
-modbedtools -h                                                                                    
+$ modbedtools -h                                                                                    
 usage: modbedtools [-h] [--version] {bam2mod,addbg} ...
 
 Python command line tool to generate modbed files for visualization on WashU Epigenome Browser.
@@ -72,8 +72,8 @@ subcommands:
 convert bam files with MM/ML tags to modbed format.
 
 ```bash
-modbedtools bam2mod -h             
-usage: modbedtools bam2mod [-h] [-b [{C,A,c,a}]] [-c CUTOFF] [-o OUTPUT] bamfile
+$ modbedtools bam2mod -h             
+usage: modbedtools bam2mod [-h] [-b [{C,A,c,a}]] [-g] [-c CUTOFF] [-o OUTPUT] bamfile
 
 positional arguments:
   bamfile               bam file with MM/ML tags
@@ -82,6 +82,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -b [{C,A,c,a}], --base [{C,A,c,a}]
                         modification base, case in-sensitive, C/c are same. (default: C)
+  -g, --cpg             output for both C/G bases in CpG, only applys when base is C
   -c CUTOFF, --cutoff CUTOFF
                         methylation cutoff, >= cutoff as methylated. default: 0.5
   -o OUTPUT, --output OUTPUT
@@ -97,6 +98,18 @@ modbedtools bam2mod hifi-test.bam -o hifi
 ```bash
 modbedtools bam2mod remora-test.bam -o remora
 ```
+
+#### pacbio data
+
+For pacbio data, since strand information of each CpG site is lost in the combining CCS step, user are recommded to output signal from both C in each CpG site with `-g` option:
+
+```bash
+modbedtools bam2mod hifi-test.bam -o hifi -g
+```
+
+see the below screenshots for pacbio data visualizaed at base pair level, top is without `-g` and button is with `-g` option:
+
+![](./img/m10.png)
 
 ### addbg
 
