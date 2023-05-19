@@ -99,18 +99,6 @@ modbedtools bam2mod hifi-test.bam -o hifi
 modbedtools bam2mod remora-test.bam -o remora
 ```
 
-#### pacbio data
-
-PacBio CpG methylation calls of circular consensus se-quencing (ccs) reads represents the predicted methylation status of the CpG site as a unit. Usually, we plotted the methylation prediction of CCS on both C base at each CpG site by enable the `-g` option:
-
-```bash
-modbedtools bam2mod hifi-test.bam -o hifi -g
-```
-
-see the below screenshots for pacbio data visualizaed at base pair level, top is without `-g` and button is with `-g` option:
-
-![](./img/m10.png)
-
 ### addbg
 
 For data provided methylated bases, given a reference genome fasta sequence, add the unmethylated bases from genome sequence as background, **this assumes all other specified bases from genome are unmethylated/unmodified**.
@@ -158,36 +146,48 @@ In this tutorial, and we will use [hifi-test.modbed.gz](https://target.wustl.edu
 
 First we will go to the Browser by navigating your web browser to <https://epigenomegateway.wustl.edu/browser/>, click `hg38` for the genome.
 
-![](./img/m1.png)
+![](https://github.com/lidaof/modbedtools/blob/main/img/m1.png?raw=true)
 
 In the test data, we will check methylation signal over *KDM2A* gene, we will use the gene search function, type in `KDM2A` and choose the first hit in refGene:
 
-![](./img/m2.png)
+![](https://github.com/lidaof/modbedtools/blob/main/img/m2.png?raw=true)
 
 Go to Tracks menu, click Remote Tracks:
 
-![](./img/m3.png)
+![](https://github.com/lidaof/modbedtools/blob/main/img/m3.png?raw=true)
 
 Choose modbed from the track type dropdown list, paste the URL above:
 
-![](./img/m4.png)
+![](https://github.com/lidaof/modbedtools/blob/main/img/m4.png?raw=true)
 
 This is the default view after you submit this modbed file, each row represents a long read, each bar on each read means methylation level, gray bar indicates there is an cytosine base but it’s unmethylated. Mouse over each bar can show the tooltip.
 
-![](./img/m5.png)
+![](https://github.com/lidaof/modbedtools/blob/main/img/m5.png?raw=true)
 
 Zoom in 5-fold multiple times, you can see the methylation status at base pair level resolution, each filled circle means methylated, empty circle means unmethylated, orange circle above the line means it’s in + strand, blue in – strand.
 
-![](./img/m6.png)
+![](https://github.com/lidaof/modbedtools/blob/main/img/m6.png?raw=true)
 
 Zoom out multiple times from the default view, can clearly view m6A methylation profile over each read:
 
-![](./img/m7.png)
+![](https://github.com/lidaof/modbedtools/blob/main/img/m7.png?raw=true)
 
 Zoom out further, signals from all reads are summarized to one bar plot, gray line indicates read density, bar height means methylation level:
 
-![](./img/m8.png)
+![](https://github.com/lidaof/modbedtools/blob/main/img/m8.png?raw=true)
 
 At each view, right click the track, can change view to heatmap style like in IGV:
 
-![](./img/m9.png)
+![](https://github.com/lidaof/modbedtools/blob/main/img/m9.png?raw=true)
+
+## Pacbio data
+
+PacBio CpG methylation calls of circular consensus se-quencing (ccs) reads represents the predicted methylation status of the CpG site as a unit. Usually, we plotted the methylation prediction of CCS on both C base at each CpG site by enable the `-g` option:
+
+```bash
+modbedtools bam2mod hifi-test.bam -o hifi -g
+```
+
+see the below screenshots for pacbio data visualizaed at base pair level, top is without `-g` and button is with `-g` option:
+
+![](https://github.com/lidaof/modbedtools/blob/main/img/m10.png?raw=true)
