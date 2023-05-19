@@ -101,7 +101,7 @@ modbedtools bam2mod remora-test.bam -o remora
 
 #### pacbio data
 
-For pacbio data, since strand information of each CpG site is lost in the combining CCS step, user are recommded to output signal from both C in each CpG site with `-g` option:
+PacBio CpG methylation calls of circular consensus se-quencing (ccs) reads represents the predicted methylation status of the CpG site as a unit. Usually, we plotted the methylation prediction of CCS on both C base at each CpG site by enable the `-g` option:
 
 ```bash
 modbedtools bam2mod hifi-test.bam -o hifi -g
