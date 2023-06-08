@@ -16,10 +16,10 @@ Install through [pypi modbedtools project page](https://pypi.org/project/modbedt
 ```sh
 $ pip install modbedtools
 Collecting modbedtools
-  Downloading modbedtools-0.1.0-py3-none-any.whl (6.8 kB)
+  Downloading modbedtools-0.1.3-py3-none-any.whl (8.8 kB)
 Requirement already satisfied: pysam in /opt/apps/python3/lib/python3.7/site-packages (from modbedtools) (0.19.1)
 Installing collected packages: modbedtools
-Successfully installed modbedtools-0.1.0
+Successfully installed modbedtools-0.1.3
 ```
 
 ## modbed format
@@ -142,7 +142,19 @@ Then the .gz and .gz.tbi files can be placed into any web server for hosting and
 
 ## visualization
 
+Example modbed files can be used for visualization (all for human `hg38` genome):
+
+| File      | Description |
+| ----------- | ----------- |
+| [HG00621.remora.modbed.gz](<https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/HG00621.remora.modbed.gz>)       | Genome wide ONT remora data       |
+| [remora-test-chr11.modbed.gz](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/remora-test-chr11.modbed.gz)   |  ONT remora data only on chr11   |
+| [hifi-test-chr11.bam](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/hifi-test-chr11.bam)   | PacBio Hifi data only on chr11        |
+| [hifi-test-chr11.cpg.modbed.gz](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/hifi-test-chr11.cpg.modbed.gz)   | PacBio Hifi data only on chr11 at CpG mode       |
+| [hifi-test.modbed-hbg.gz](https://target.wustl.edu/dli/modbed/hifi-test.modbed-hbg.gz), [index file](https://target.wustl.edu/dli/modbed/hifi-test.modbed-hbg.gz.tbi)   | PacBio Hifi data only on `chr11:5162720-5356331`, for testing local track upload        |
+
 In this tutorial, and we will use [hifi-test.modbed.gz](https://target.wustl.edu/dli/modbed/hifi-test.modbed.gz) for the next step by step tutorial.
+
+***(Please note this test data only contains methylation signal on chr11)***
 
 First we will go to the Browser by navigating your web browser to <https://epigenomegateway.wustl.edu/browser/>, click `hg38` for the genome.
 

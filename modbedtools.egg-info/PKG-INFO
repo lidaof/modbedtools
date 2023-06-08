@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: modbedtools
-Version: 0.1.3
+Version: 0.1.4
 Summary: Generate modbed track files for visualization on WashU Epigenome Browser
 Home-page: https://github.com/lidaof/modbedtools
 Author: Daofeng Li
@@ -29,10 +29,10 @@ Install through [pypi modbedtools project page](https://pypi.org/project/modbedt
 ```sh
 $ pip install modbedtools
 Collecting modbedtools
-  Downloading modbedtools-0.1.0-py3-none-any.whl (6.8 kB)
+  Downloading modbedtools-0.1.3-py3-none-any.whl (8.8 kB)
 Requirement already satisfied: pysam in /opt/apps/python3/lib/python3.7/site-packages (from modbedtools) (0.19.1)
 Installing collected packages: modbedtools
-Successfully installed modbedtools-0.1.0
+Successfully installed modbedtools-0.1.3
 ```
 
 ## modbed format
@@ -156,6 +156,8 @@ Then the .gz and .gz.tbi files can be placed into any web server for hosting and
 ## visualization
 
 In this tutorial, and we will use [hifi-test.modbed.gz](https://target.wustl.edu/dli/modbed/hifi-test.modbed.gz) for the next step by step tutorial.
+
+***(Please note this test data only contains methylation signal on chr11)***
 
 First we will go to the Browser by navigating your web browser to <https://epigenomegateway.wustl.edu/browser/>, click `hg38` for the genome.
 

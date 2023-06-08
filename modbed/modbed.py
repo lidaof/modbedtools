@@ -68,19 +68,23 @@ def process_read(read, cutoff, base, cpg):
 
 
 def bam2mod(bamfile, outfile, cutoff=0.5, base='C', cpg=False):
-    bam = pysam.AlignmentFile(bamfile, 'rb', check_sq=False)
+    # remove 'rb' mode for auto-detect
+    bam = pysam.AlignmentFile(bamfile, check_sq=False)
+    hasIndex = False
     if os.path.exists(bamfile+'.bai'):
-        num_reads = bam.count()  # this needs index
-        print(f'[info] total reads: {num_reads}', file=sys.stderr)
+        hasIndex = True
+        # num_reads = bam.count()  # this needs index
+        # print(f'[info] total reads: {num_reads}', file=sys.stderr)
     cpgtag = '.cpg' if cpg else ''
     outf = f'{outfile}{cpgtag}.modbed'
     print(f'[info] writing file {outf}', file=sys.stderr)
     with open(outf, "w") as out:
-        for read in bam.fetch(until_eof=True):  # this makes bam index optional
+        # this makes bam index optional
+        for read in bam.fetch(until_eof=(not hasIndex)):
             items = process_read(read, cutoff, base, cpg)
             if len(items):
                 # for output, need either has modified base or unmodified base
-                if items[3] != '.' or items[4] != '.':
+                if items[6] != '.' or items[7] != '.':
                     line = '\t'.join(items)
                     out.write(line+'\n')
 
