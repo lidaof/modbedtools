@@ -142,15 +142,18 @@ Then the .gz and .gz.tbi files can be placed into any web server for hosting and
 
 ## visualization
 
-Example modbed files can be used for visualization (all for human `hg38` genome):
+Example modbed files can be used for visualization:
 
-| File      | Description |
-| ----------- | ----------- |
-| [HG00621.remora.modbed.gz](<https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/HG00621.remora.modbed.gz>)       | Genome wide ONT remora data       |
-| [remora-test-chr11.modbed.gz](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/remora-test-chr11.modbed.gz)   |  ONT remora data only on chr11   |
-| [hifi-test-chr11.bam](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/hifi-test-chr11.bam)   | PacBio Hifi data only on chr11        |
-| [hifi-test-chr11.cpg.modbed.gz](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/hifi-test-chr11.cpg.modbed.gz)   | PacBio Hifi data only on chr11 at CpG mode       |
-| [hifi-test.modbed-hbg.gz](https://target.wustl.edu/dli/modbed/hifi-test.modbed-hbg.gz), [index file](https://target.wustl.edu/dli/modbed/hifi-test.modbed-hbg.gz.tbi)   | PacBio Hifi data only on `chr11:5162720-5356331`, for testing local track upload        |
+| File      | Description | One-click URL for visualization |
+| ----------- | ----------- | ----------- |
+| [HG00621.remora.modbed.gz](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/HG00621.remora.modbed.gz)       | Genome wide ONT remora data       | [link](https://epigenomegateway.wustl.edu/browser/?sessionFile=https://target.wustl.edu/dli/modbed/sessions/remora-all.json) |
+| [remora-test-chr11.modbed.gz](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/remora-test-chr11.modbed.gz)   |  ONT remora data only on chr11   | [link](https://epigenomegateway.wustl.edu/browser/?sessionFile=https://target.wustl.edu/dli/modbed/sessions/remora.json) |
+| [HG00621.hifi.cpg.modbed.gz](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/HG00621.hifi.cpg.modbed.gz)   | Genome wide PacBio Hifi data  | [link](https://epigenomegateway.wustl.edu/browser/?sessionFile=https://target.wustl.edu/dli/modbed/sessions/hifi-all.json) |
+| [hifi-test-chr11.cpg.modbed.gz](https://wangftp.wustl.edu/~dli/fiber-seq/3genmethyl/hifi-test-chr11.cpg.modbed.gz)   | PacBio Hifi data only on chr11 at CpG mode       | [link](https://epigenomegateway.wustl.edu/browser/?sessionFile=https://target.wustl.edu/dli/modbed/sessions/hifi-cpg.json) |
+| [hifi-test.modbed-hbg.gz](https://target.wustl.edu/dli/modbed/hifi-test.modbed-hbg.gz), [index file](https://target.wustl.edu/dli/modbed/hifi-test.modbed-hbg.gz.tbi)   | PacBio Hifi data only on `chr11:5162720-5356331`, also for testing local track upload        | [link](https://epigenomegateway.wustl.edu/browser/?sessionFile=https://target.wustl.edu/dli/modbed/sessions/hifi-hbg.json) |
+| [GSM4411218_tracks_m6A_DS75167.dm6.modbed.gz](https://target.wustl.edu/dli/modbed/GSM4411218_tracks_m6A_DS75167.dm6.modbed.gz) | Fruit fly Fiber-seq data | [link](https://epigenomegateway.wustl.edu/browser/?sessionFile=https://target.wustl.edu/dli/modbed/sessions/fiber-seq.json)|
+
+### step by step tutorial
 
 In this tutorial, and we will use [hifi-test.modbed.gz](https://target.wustl.edu/dli/modbed/hifi-test.modbed.gz) for the next step by step tutorial.
 
