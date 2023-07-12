@@ -195,6 +195,12 @@ At each view, right click the track, can change view to heatmap style like in IG
 
 ![](https://github.com/lidaof/modbedtools/blob/main/img/m9.png?raw=true)
 
+### upload modbed files as local track
+
+Please see the animation below for instructions, example files can be found [here](https://target.wustl.edu/dli/modbed/hifi-test.modbed-hbg.gz), and its[index file](https://target.wustl.edu/dli/modbed/hifi-test.modbed-hbg.gz.tbi), please download both files to your local hard drive.
+
+![](https://github.com/lidaof/modbedtools/blob/main/img/local_modbed.gif?raw=true)
+
 ## Pacbio data
 
 PacBio CpG methylation calls of circular consensus se-quencing (ccs) reads represents the predicted methylation status of the CpG site as a unit. Usually, we plotted the methylation prediction of CCS on both C base at each CpG site by enable the `-g` option:
