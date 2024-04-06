@@ -23,7 +23,7 @@ def process_read(read, cutoff, base, cpg):
             alignd[x[0]] = x[1]
         modbase_key = ('C', 1, 'm') if read.is_reverse else ('C', 0, 'm')
         if base == 'A':
-            modbase_key = ('T', 1, 'a') if read.is_reverse else ('A', 0, 'a')
+            modbase_key = ('A', 1, 'a') if read.is_reverse else ('A', 0, 'a')
         if modbase_key not in read.modified_bases:
             return []
         modbase_list = read.modified_bases[modbase_key]
@@ -152,6 +152,8 @@ def addbg(bedfile, fasta_file, output, base):
             c1str = '.'
             c2str = '.'
             for x in range(start, end+1):
+                if x >= len(s):  # Check if x exceeds the chromosome length, from @mitomac @github
+                    continue  # Skip if it does
                 if x in bs3:
                     # a methylated base
                     if s[x] == base or s[x] == sbase:
