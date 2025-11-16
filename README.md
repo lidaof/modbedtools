@@ -6,7 +6,7 @@ A python command line tool to generate modbed files for visualization on the [Wa
 
 This tools has 2 modules/subcommands:
 
-1. parse MM/ML tag from BAM files generated from 3<sup>rd</sup> generation sequencing platform like [Oxford Nanopore](https://nanoporetech.com/applications/investigation/epigenetics) and [PacBio](https://www.pacb.com/products-and-services/applications/epigenetics/) devices using the [pysam](https://pysam.readthedocs.io/en/latest) package.
+1. parse MM/ML tag from BAM/CRAM files generated from 3<sup>rd</sup> generation sequencing platform like [Oxford Nanopore](https://nanoporetech.com/applications/investigation/epigenetics) and [PacBio](https://www.pacb.com/products-and-services/applications/epigenetics/) devices using the [pysam](https://pysam.readthedocs.io/en/latest) package.
 2. add background canonical base positions given modified bases.
 
 ## installation
@@ -69,14 +69,14 @@ subcommands:
 
 ### bam2mod
 
-convert bam files with MM/ML tags to modbed format.
+convert bam/cram files with MM/ML tags to modbed format.
 
 ```bash
 $ modbedtools bam2mod -h             
-usage: modbedtools bam2mod [-h] [-b [{C,A,c,a}]] [-g] [-c CUTOFF] [-o OUTPUT] bamfile
+usage: modbedtools bam2mod [-h] [-b [{C,A,c,a}]] [-g] [-c CUTOFF] [-r REFERENCE] [-o OUTPUT] bamfile
 
 positional arguments:
-  bamfile               bam file with MM/ML tags
+  bamfile               bam/cram file with MM/ML tags
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -85,6 +85,8 @@ optional arguments:
   -g, --cpg             output for both C/G bases in CpG, only applys when base is C
   -c CUTOFF, --cutoff CUTOFF
                         methylation cutoff, >= cutoff as methylated. default: 0.5
+  -r REFERENCE, --reference REFERENCE
+                        reference genome file (required for CRAM files, optional for BAM)
   -o OUTPUT, --output OUTPUT
                         output file name, a suffix .modbed will be added. default: output
 ```
@@ -97,6 +99,11 @@ modbedtools bam2mod hifi-test.bam -o hifi
 
 ```bash
 modbedtools bam2mod remora-test.bam -o remora
+```
+
+```bash
+# CRAM file example (requires reference genome)
+modbedtools bam2mod sample.cram -r reference.fa -o sample
 ```
 
 ### addbg
