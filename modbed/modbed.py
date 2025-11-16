@@ -67,11 +67,17 @@ def process_read(read, cutoff, base, cpg):
         return []
 
 
-def bam2mod(bamfile, outfile, cutoff=0.5, base='C', cpg=False):
+def bam2mod(bamfile, outfile, cutoff=0.5, base='C', cpg=False, reference=None):
     # remove 'rb' mode for auto-detect
-    bam = pysam.AlignmentFile(bamfile, check_sq=False)
+    # For CRAM files, reference_filename is required
+    if reference:
+        assert os.path.exists(reference), f'Reference file {reference} does not exist'
+        bam = pysam.AlignmentFile(bamfile, reference_filename=reference, check_sq=False)
+    else:
+        bam = pysam.AlignmentFile(bamfile, check_sq=False)
     hasIndex = False
-    if os.path.exists(bamfile+'.bai'):
+    # Check for both BAM (.bai) and CRAM (.crai) index files
+    if os.path.exists(bamfile+'.bai') or os.path.exists(bamfile+'.crai'):
         hasIndex = True
         # num_reads = bam.count()  # this needs index
         # print(f'[info] total reads: {num_reads}', file=sys.stderr)
