@@ -10,7 +10,7 @@ from modbed import modbed
 
 
 def bam2mod_wrap(args):
-    modbed.bam2mod(args.bamfile, args.output, args.cutoff, args.base, args.cpg, args.reference)
+    modbed.bam2mod(args.bamfile, args.output, args.cutoff, args.cpg, args.reference)
 
 
 def addbg_wrap(args):
@@ -33,12 +33,12 @@ if __name__ == '__main__':
         'bam2mod', help='convert bam/cram to modbed')
     parser_bam2mod.add_argument(
         'bamfile', help='bam/cram file with MM/ML tags')
-    parser_bam2mod.add_argument('-b', '--base', choices=['C', 'A', 'c', 'a'], default='C',
-                                const='C',
-                                nargs='?',
-                                type=str.upper,
-                                help='modification base, case in-sensitive, C/c are same. (default: %(default)s)')
-    parser_bam2mod.add_argument("-g", "--cpg", help="output for both C/G bases in CpG, only applys when base is C",
+    # parser_bam2mod.add_argument('-b', '--base', choices=['C', 'A', 'c', 'a'], default='C',
+    #                             const='C',
+    #                             nargs='?',
+    #                             type=str.upper,
+    #                             help='modification base, case in-sensitive, C/c are same. (default: %(default)s)')
+    parser_bam2mod.add_argument("-g", "--cpg", help="output for both C/G bases in CpG, assumes base is C",
                                 action="store_true")
     parser_bam2mod.add_argument('-c', '--cutoff', type=float,
                                 help='methylation cutoff, >= cutoff as methylated. default: 0.5', default=0.5)

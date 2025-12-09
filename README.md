@@ -73,16 +73,14 @@ convert bam/cram files with MM/ML tags to modbed format.
 
 ```bash
 $ modbedtools bam2mod -h             
-usage: modbedtools bam2mod [-h] [-b [{C,A,c,a}]] [-g] [-c CUTOFF] [-r REFERENCE] [-o OUTPUT] bamfile
+usage: modbedtools bam2mod [-h] [-g] [-c CUTOFF] [-r REFERENCE] [-o OUTPUT] bamfile
 
 positional arguments:
   bamfile               bam/cram file with MM/ML tags
 
 optional arguments:
   -h, --help            show this help message and exit
-  -b [{C,A,c,a}], --base [{C,A,c,a}]
-                        modification base, case in-sensitive, C/c are same. (default: C)
-  -g, --cpg             output for both C/G bases in CpG, only applys when base is C
+  -g, --cpg             output for both C/G bases in CpG, assumes base is C
   -c CUTOFF, --cutoff CUTOFF
                         methylation cutoff, >= cutoff as methylated. default: 0.5
   -r REFERENCE, --reference REFERENCE
@@ -146,6 +144,10 @@ tabix -p bed hifi.modbed.gz
 ```
 
 Then the .gz and .gz.tbi files can be placed into any web server for hosting and the URL to the .gz file can be used for Visualization in [WashU Epigenome Browser](https://epigenomegateway.wustl.edu/).
+
+## changelog
+
+* since version 0.2.0, removed `base` option for `bam2mod`
 
 ## visualization
 

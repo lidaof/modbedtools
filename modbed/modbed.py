@@ -3,8 +3,7 @@ import os
 import gzip
 import pysam
 
-
-def process_read(read, cutoff, base, cpg):
+def process_read(read, cutoff, cpg):
     '''
     convert bam file with Ml/Mm tags to bed file with methylation information in format: chr, start, end, name, score, strand, methylated position array, unmethylated position array.
     One line per read.
@@ -21,11 +20,15 @@ def process_read(read, cutoff, base, cpg):
         for x in align:
             # aligned dict, key: query pos in read, value: ref pos
             alignd[x[0]] = x[1]
-        modbase_key = ('C', 1, 'm') if read.is_reverse else ('C', 0, 'm')
-        if base == 'A':
-            modbase_key = ('A', 1, 'a') if read.is_reverse else ('A', 0, 'a')
-        if modbase_key not in read.modified_bases:
+        # modbase_key = ('C', 1, 'm') if read.is_reverse else ('C', 0, 'm')
+        # if base == 'A':
+        #     modbase_key = ('A', 1, 'a') if read.is_reverse else ('A', 0, 'a')
+        # if modbase_key not in read.modified_bases:
+        #     return []
+        modbase_keys = list(read.modified_bases.keys())
+        if not len(modbase_keys):
             return []
+        modbase_key = modbase_keys[0]
         modbase_list = read.modified_bases[modbase_key]
         modbase_methy_string = '.'
         modbase_unmet_string = '.'
@@ -36,24 +39,24 @@ def process_read(read, cutoff, base, cpg):
             if j[0] in alignd:
                 if j[1]/255. >= cutoff:  # methylated base
                     if read.is_reverse:
-                        if base == 'C' and cpg:
+                        if cpg:
                             modbase_methy_list.append(
                                 str(alignd[j[0]] - start - 1))
                         modbase_methy_list.append(str(start - alignd[j[0]]))
                     else:
                         modbase_methy_list.append(str(alignd[j[0]] - start))
-                        if base == 'C' and cpg:
+                        if cpg:
                             modbase_methy_list.append(
                                 str(-(alignd[j[0]] - start+1)))
                 else:
                     if read.is_reverse:
-                        if base == 'C' and cpg:
+                        if cpg:
                             modbase_unmet_list.append(
                                 str(alignd[j[0]] - start - 1))
                         modbase_unmet_list.append(str(start - alignd[j[0]]))
                     else:
                         modbase_unmet_list.append(str(alignd[j[0]] - start))
-                        if base == 'C' and cpg:
+                        if cpg:
                             modbase_unmet_list.append(
                                 str(-(alignd[j[0]] - start+1)))
         if len(modbase_methy_list):
@@ -67,7 +70,7 @@ def process_read(read, cutoff, base, cpg):
         return []
 
 
-def bam2mod(bamfile, outfile, cutoff=0.5, base='C', cpg=False, reference=None):
+def bam2mod(bamfile, outfile, cutoff=0.5, cpg=False, reference=None):
     # remove 'rb' mode for auto-detect
     # For CRAM files, reference_filename is required
     if reference:
@@ -87,7 +90,11 @@ def bam2mod(bamfile, outfile, cutoff=0.5, base='C', cpg=False, reference=None):
     with open(outf, "w") as out:
         # this makes bam index optional
         for read in bam.fetch(until_eof=(not hasIndex)):
-            items = process_read(read, cutoff, base, cpg)
+            print('==================', file=sys.stderr)
+            print(read.modified_bases, file=sys.stderr)
+            print('******************', file=sys.stderr)
+            print(read, file=sys.stderr)
+            items = process_read(read, cutoff, cpg)
             if len(items):
                 # for output, need either has modified base or unmodified base
                 if items[6] != '.' or items[7] != '.':

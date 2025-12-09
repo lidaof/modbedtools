@@ -20,7 +20,7 @@ A python command line tool to generate modbed files for visualization on the [Wa
 
 This tools has 2 modules/subcommands:
 
-1. parse MM/ML tag from BAM files generated from 3<sup>rd</sup> generation sequencing platform like [Oxford Nanopore](https://nanoporetech.com/applications/investigation/epigenetics) and [PacBio](https://www.pacb.com/products-and-services/applications/epigenetics/) devices using the [pysam](https://pysam.readthedocs.io/en/latest) package.
+1. parse MM/ML tag from BAM/CRAM files generated from 3<sup>rd</sup> generation sequencing platform like [Oxford Nanopore](https://nanoporetech.com/applications/investigation/epigenetics) and [PacBio](https://www.pacb.com/products-and-services/applications/epigenetics/) devices using the [pysam](https://pysam.readthedocs.io/en/latest) package.
 2. add background canonical base positions given modified bases.
 
 ## installation
@@ -75,7 +75,7 @@ subcommands:
   valid subcommands
 
   {bam2mod,addbg}  additional help
-    bam2mod        convert bam to modbed
+    bam2mod        convert bam/cram to modbed
     addbg          add backgroud bases given modified bases and reference sequence
 ```
 
@@ -90,7 +90,7 @@ $ modbedtools bam2mod -h
 usage: modbedtools bam2mod [-h] [-b [{C,A,c,a}]] [-g] [-c CUTOFF] [-o OUTPUT] bamfile
 
 positional arguments:
-  bamfile               bam file with MM/ML tags
+  bamfile               bam/cram file with MM/ML tags
 
 optional arguments:
   -h, --help            show this help message and exit
