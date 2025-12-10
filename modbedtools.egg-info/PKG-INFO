@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: modbedtools
-Version: 0.1.6
+Version: 0.2.0
 Summary: Generate modbed track files for visualization on WashU Epigenome Browser
 Home-page: https://github.com/lidaof/modbedtools
 Author: Daofeng Li
@@ -11,6 +11,15 @@ Classifier: Operating System :: OS Independent
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: pysam
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: summary
 
 # modbedtools
 
@@ -75,7 +84,7 @@ subcommands:
   valid subcommands
 
   {bam2mod,addbg}  additional help
-    bam2mod        convert bam/cram to modbed
+    bam2mod        convert bam to modbed
     addbg          add backgroud bases given modified bases and reference sequence
 ```
 
@@ -83,22 +92,22 @@ subcommands:
 
 ### bam2mod
 
-convert bam files with MM/ML tags to modbed format.
+convert bam/cram files with MM/ML tags to modbed format.
 
 ```bash
 $ modbedtools bam2mod -h             
-usage: modbedtools bam2mod [-h] [-b [{C,A,c,a}]] [-g] [-c CUTOFF] [-o OUTPUT] bamfile
+usage: modbedtools bam2mod [-h] [-g] [-c CUTOFF] [-r REFERENCE] [-o OUTPUT] bamfile
 
 positional arguments:
   bamfile               bam/cram file with MM/ML tags
 
 optional arguments:
   -h, --help            show this help message and exit
-  -b [{C,A,c,a}], --base [{C,A,c,a}]
-                        modification base, case in-sensitive, C/c are same. (default: C)
-  -g, --cpg             output for both C/G bases in CpG, only applys when base is C
+  -g, --cpg             output for both C/G bases in CpG, assumes base is C
   -c CUTOFF, --cutoff CUTOFF
                         methylation cutoff, >= cutoff as methylated. default: 0.5
+  -r REFERENCE, --reference REFERENCE
+                        reference genome file (required for CRAM files, optional for BAM)
   -o OUTPUT, --output OUTPUT
                         output file name, a suffix .modbed will be added. default: output
 ```
@@ -111,6 +120,11 @@ modbedtools bam2mod hifi-test.bam -o hifi
 
 ```bash
 modbedtools bam2mod remora-test.bam -o remora
+```
+
+```bash
+# CRAM file example (requires reference genome)
+modbedtools bam2mod sample.cram -r reference.fa -o sample
 ```
 
 ### addbg
@@ -153,6 +167,10 @@ tabix -p bed hifi.modbed.gz
 ```
 
 Then the .gz and .gz.tbi files can be placed into any web server for hosting and the URL to the .gz file can be used for Visualization in [WashU Epigenome Browser](https://epigenomegateway.wustl.edu/).
+
+## changelog
+
+* since version 0.2.0, removed `base` option for `bam2mod`
 
 ## visualization
 

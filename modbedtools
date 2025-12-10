@@ -45,7 +45,7 @@ if __name__ == '__main__':
     parser_bam2mod.add_argument('-r', '--reference', type=str,
                                 help='reference genome file (required for CRAM files, not needed for BAM)', default=None)
     parser_bam2mod.add_argument(
-        '-o', '--output', help='output file name, a suffix .modbed will be added. default: output', default='output')
+        '-o', '--output', help='output file name, a suffix .{base}modbed will be added. default: output', default='output')
     parser_bam2mod.set_defaults(func=bam2mod_wrap)
 
     # addbg

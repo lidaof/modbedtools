@@ -10,7 +10,6 @@ def process_read(read, cutoff, cpg):
     if cpg mode is on: for pacbio bam, it assumes C in both strands of an CpG has same methylation level, both C will show at bp level vis
     '''
     if not (read.is_supplementary or read.is_secondary or read.is_unmapped):
-        line = []
         chrom = read.reference_name
         start = read.reference_start
         end = read.reference_end
@@ -27,52 +26,92 @@ def process_read(read, cutoff, cpg):
         #     return []
         modbase_keys = list(read.modified_bases.keys())
         if not len(modbase_keys):
-            return []
-        modbase_key = modbase_keys[0]
-        modbase_list = read.modified_bases[modbase_key]
-        modbase_methy_string = '.'
-        modbase_unmet_string = '.'
-        modbase_methy_list = []
-        modbase_unmet_list = []
-        strand = '-' if read.is_reverse else '+'
-        for j in modbase_list:
-            if j[0] in alignd:
-                if j[1]/255. >= cutoff:  # methylated base
-                    if read.is_reverse:
-                        if cpg:
-                            modbase_methy_list.append(
-                                str(alignd[j[0]] - start - 1))
-                        modbase_methy_list.append(str(start - alignd[j[0]]))
+            return {}
+        mod_dict = {} # key, modbase, can be A or C, T will be combined to A, value: the output list
+        '''
+        >>> a[0].modified_bases.keys()
+        dict_keys([('A', 1, 'a'), ('C', 1, 'm'), ('T', 0, 'a')])
+        >>> a[2].modified_bases.keys()
+        dict_keys([('T', 0, 'a'), ('C', 1, 'm'), ('A', 1, 'a')])
+        '''
+        for modbase_key in modbase_keys:
+            real_base = modbase_key[0]
+            if real_base == 'T':
+                base = 'A'
+            else:
+                base = real_base
+            modbase_list = read.modified_bases[modbase_key]
+            modbase_methy_string = '.'
+            modbase_unmet_string = '.'
+            modbase_methy_list = []
+            modbase_unmet_list = []
+            strand = '-' if read.is_reverse else '+'
+            for j in modbase_list:
+                if j[0] in alignd:
+                    if j[1]/255. >= cutoff:  # methylated base
+                        if read.is_reverse:
+                            if cpg:
+                                modbase_methy_list.append(
+                                    str(alignd[j[0]] - start - 1))
+                            if real_base == 'T': # use the A on the other strand, add - sign
+                                modbase_methy_list.append(str(-(start - alignd[j[0]])))
+                            else:
+                                modbase_methy_list.append(str(start - alignd[j[0]]))
+                        else:
+                            if real_base == 'T':
+                                modbase_methy_list.append(str(-(alignd[j[0]] - start)))
+                            else:
+                                modbase_methy_list.append(str(alignd[j[0]] - start))
+                            if cpg:
+                                modbase_methy_list.append(
+                                    str(-(alignd[j[0]] - start+1)))
                     else:
-                        modbase_methy_list.append(str(alignd[j[0]] - start))
-                        if cpg:
-                            modbase_methy_list.append(
-                                str(-(alignd[j[0]] - start+1)))
-                else:
-                    if read.is_reverse:
-                        if cpg:
-                            modbase_unmet_list.append(
-                                str(alignd[j[0]] - start - 1))
-                        modbase_unmet_list.append(str(start - alignd[j[0]]))
-                    else:
-                        modbase_unmet_list.append(str(alignd[j[0]] - start))
-                        if cpg:
-                            modbase_unmet_list.append(
-                                str(-(alignd[j[0]] - start+1)))
-        if len(modbase_methy_list):
-            modbase_methy_string = ','.join(modbase_methy_list)
-        if len(modbase_unmet_list):
-            modbase_unmet_string = ','.join(modbase_unmet_list)
-        line = [chrom, str(start), str(end), name, '0', strand, modbase_methy_string,
-                modbase_unmet_string]
-        return line
+                        if read.is_reverse:
+                            if cpg:
+                                modbase_unmet_list.append(
+                                    str(alignd[j[0]] - start - 1))
+                            if real_base == 'T':
+                                modbase_unmet_list.append(str(-(start - alignd[j[0]])))
+                            else:
+                                modbase_unmet_list.append(str(start - alignd[j[0]]))
+                        else:
+                            if real_base == 'T':
+                                modbase_unmet_list.append(str(-(alignd[j[0]] - start)))
+                            else:
+                                modbase_unmet_list.append(str(alignd[j[0]] - start))
+                            if cpg:
+                                modbase_unmet_list.append(
+                                    str(-(alignd[j[0]] - start+1)))
+            if len(modbase_methy_list):
+                modbase_methy_string = ','.join(modbase_methy_list)
+            if len(modbase_unmet_list):
+                modbase_unmet_string = ','.join(modbase_unmet_list)
+            if base in mod_dict:
+                # combine info from different modified base keys
+                existing = mod_dict[base]
+                # existing: [chrom, str(start), str(end), name, '0', strand, modbase_methy_string,
+                #             modbase_unmet_string]
+                if existing[6] == '.':
+                    existing[6] = modbase_methy_string
+                elif modbase_methy_string != '.':
+                    existing[6] = existing[6] + ',' + modbase_methy_string
+                if existing[7] == '.':
+                    existing[7] = modbase_unmet_string
+                elif modbase_unmet_string != '.':
+                    existing[7] = existing[7] + ',' + modbase_unmet_string
+                mod_dict[base] = existing
+            else:
+                mod_dict[base] = [chrom, str(start), str(end), name, '0', strand, modbase_methy_string,
+                    modbase_unmet_string]
+        return mod_dict
     else:
-        return []
+        return {}
 
 
 def bam2mod(bamfile, outfile, cutoff=0.5, cpg=False, reference=None):
     # remove 'rb' mode for auto-detect
     # For CRAM files, reference_filename is required
+    print(f'[info] reading file {bamfile}', file=sys.stderr)
     if reference:
         assert os.path.exists(reference), f'Reference file {reference} does not exist'
         bam = pysam.AlignmentFile(bamfile, reference_filename=reference, check_sq=False)
@@ -85,21 +124,33 @@ def bam2mod(bamfile, outfile, cutoff=0.5, cpg=False, reference=None):
         # num_reads = bam.count()  # this needs index
         # print(f'[info] total reads: {num_reads}', file=sys.stderr)
     cpgtag = '.cpg' if cpg else ''
-    outf = f'{outfile}{cpgtag}.modbed'
-    print(f'[info] writing file {outf}', file=sys.stderr)
-    with open(outf, "w") as out:
+    fhs = {} # file handles for different modified bases
+    # print(f'[info] writing file {outf}', file=sys.stderr)
+    # with open(outf, "w") as out:
         # this makes bam index optional
-        for read in bam.fetch(until_eof=(not hasIndex)):
-            print('==================', file=sys.stderr)
-            print(read.modified_bases, file=sys.stderr)
-            print('******************', file=sys.stderr)
-            print(read, file=sys.stderr)
-            items = process_read(read, cutoff, cpg)
-            if len(items):
+    for read in bam.fetch(until_eof=(not hasIndex)):
+        # print('==================', file=sys.stderr)
+        # print(read.modified_bases, file=sys.stderr)
+        # print('******************', file=sys.stderr)
+        # print(read, file=sys.stderr)
+        items = process_read(read, cutoff, cpg)
+        bases = list(items.keys())
+        for base in bases:
+            if base not in fhs:
+                outf_base = f'{outfile}{cpgtag}.{base}.modbed'
+                print(f'[info] writing file {outf_base}', file=sys.stderr)
+                fhs[base] = open(outf_base, 'w')
+            out = fhs[base]
+            line_items = items[base]
+            if len(line_items):
                 # for output, need either has modified base or unmodified base
-                if items[6] != '.' or items[7] != '.':
-                    line = '\t'.join(items)
+                if line_items[6] != '.' or line_items[7] != '.':
+                    line = '\t'.join(line_items)
                     out.write(line+'\n')
+
+    for base in fhs:
+        fhs[base].close()
+        
 
 
 rct = {
