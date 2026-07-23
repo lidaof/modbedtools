@@ -3,11 +3,45 @@ import os
 import gzip
 import pysam
 
+# SAM/BAM base modification codes -> human readable abbreviation.
+# Single letter codes and their ChEBI numeric equivalents both map here, per the
+# SAMtags specification (https://samtools.github.io/hts-specs/SAMtags.pdf).
+# Used to name the output file for each (base, modification) found in the input,
+# so e.g. 5mC and 5hmC (both C mods) go to separate files instead of being mixed.
+MOD_CODE_NAMES = {
+    # cytosine
+    'm': '5mC', 'h': '5hmC', 'f': '5fC', 'c': '5caC', 'C': 'modC',
+    27551: '5mC', 76792: '5hmC', 76794: '5fC', 76793: '5caC',
+    # thymine / uracil
+    'g': '5hmU', 'e': '5fU', 'b': '5caU', 'T': 'modT', 'U': 'modU',
+    16964: '5hmU', 80961: '5fU', 17477: '5caU',
+    # adenine
+    'a': '6mA', 'A': 'modA', 28871: '6mA',
+    # guanine
+    'o': '8oxoG', 'G': 'modG', 44605: '8oxoG',
+    # any base
+    'n': 'Xao', 'N': 'modN', 18107: 'Xao',
+}
+
+
+def mod_label(base, mod_code):
+    '''
+    human readable label for a (base, modification code) pair, used in output file names.
+    falls back to base+code (e.g. 'C21839') for modifications not in the spec table.
+    '''
+    if mod_code in MOD_CODE_NAMES:
+        return MOD_CODE_NAMES[mod_code]
+    return f'{base}{mod_code}'
+
+
 def process_read(read, cutoff, cpg):
     '''
     convert bam file with Ml/Mm tags to bed file with methylation information in format: chr, start, end, name, score, strand, methylated position array, unmethylated position array.
     One line per read.
     if cpg mode is on: for pacbio bam, it assumes C in both strands of an CpG has same methylation level, both C will show at bp level vis
+    Returns a dict keyed by (base, modification code), e.g. ('C', 'm') for 5mC,
+    ('C', 'h') for 5hmC, ('A', 'a') for 6mA, so different modifications on the same
+    base are kept separate instead of being mixed together.
     '''
     if not (read.is_supplementary or read.is_secondary or read.is_unmapped):
         chrom = read.reference_name
@@ -24,11 +58,17 @@ def process_read(read, cutoff, cpg):
         #     modbase_key = ('A', 1, 'a') if read.is_reverse else ('A', 0, 'a')
         # if modbase_key not in read.modified_bases:
         #     return []
-        modbase_keys = list(read.modified_bases.keys())
-        if not len(modbase_keys):
+        modified = read.modified_bases
+        # modified_bases is None when the MM/ML tags fail to parse (malformed tags)
+        # and an empty dict when the read simply carries no modifications; skip both.
+        if not modified:
             return {}
-        mod_dict = {} # key, modbase, can be A or C, T will be combined to A, value: the output list
+        modbase_keys = list(modified.keys())
+        mod_dict = {} # key: (base, modification code); base can be A or C, T is combined into A. value: the output list
         '''
+        modified_bases keys are (canonical_base, strand, modification_code) tuples,
+        the modification_code (e.g. 'm'=5mC, 'h'=5hmC, 'a'=6mA) can be a single
+        letter or a ChEBI integer:
         >>> a[0].modified_bases.keys()
         dict_keys([('A', 1, 'a'), ('C', 1, 'm'), ('T', 0, 'a')])
         >>> a[2].modified_bases.keys()
@@ -36,11 +76,12 @@ def process_read(read, cutoff, cpg):
         '''
         for modbase_key in modbase_keys:
             real_base = modbase_key[0]
+            mod_code = modbase_key[2]
             if real_base == 'T':
                 base = 'A'
             else:
                 base = real_base
-            modbase_list = read.modified_bases[modbase_key]
+            modbase_list = modified[modbase_key]
             modbase_methy_string = '.'
             modbase_unmet_string = '.'
             modbase_methy_list = []
@@ -86,9 +127,11 @@ def process_read(read, cutoff, cpg):
                 modbase_methy_string = ','.join(modbase_methy_list)
             if len(modbase_unmet_list):
                 modbase_unmet_string = ','.join(modbase_unmet_list)
-            if base in mod_dict:
-                # combine info from different modified base keys
-                existing = mod_dict[base]
+            mod_key = (base, mod_code)
+            if mod_key in mod_dict:
+                # combine info from different modified base keys of the same
+                # (base, modification), e.g. 6mA reported on both A and T strands
+                existing = mod_dict[mod_key]
                 # existing: [chrom, str(start), str(end), name, '0', strand, modbase_methy_string,
                 #             modbase_unmet_string]
                 if existing[6] == '.':
@@ -99,9 +142,9 @@ def process_read(read, cutoff, cpg):
                     existing[7] = modbase_unmet_string
                 elif modbase_unmet_string != '.':
                     existing[7] = existing[7] + ',' + modbase_unmet_string
-                mod_dict[base] = existing
+                mod_dict[mod_key] = existing
             else:
-                mod_dict[base] = [chrom, str(start), str(end), name, '0', strand, modbase_methy_string,
+                mod_dict[mod_key] = [chrom, str(start), str(end), name, '0', strand, modbase_methy_string,
                     modbase_unmet_string]
         return mod_dict
     else:
@@ -124,32 +167,28 @@ def bam2mod(bamfile, outfile, cutoff=0.5, cpg=False, reference=None):
         # num_reads = bam.count()  # this needs index
         # print(f'[info] total reads: {num_reads}', file=sys.stderr)
     cpgtag = '.cpg' if cpg else ''
-    fhs = {} # file handles for different modified bases
-    # print(f'[info] writing file {outf}', file=sys.stderr)
-    # with open(outf, "w") as out:
-        # this makes bam index optional
+    fhs = {} # file handles keyed by output file name, opened on the fly per (base, modification)
+    # this makes bam index optional
     for read in bam.fetch(until_eof=(not hasIndex)):
-        # print('==================', file=sys.stderr)
-        # print(read.modified_bases, file=sys.stderr)
-        # print('******************', file=sys.stderr)
-        # print(read, file=sys.stderr)
+        # process_read returns a dict keyed by (base, modification code); the base
+        # and modification are discovered dynamically from the reads' MM/ML tags, so
+        # any base/modification present (5mC, 5hmC, 6mA, ...) gets its own output file.
         items = process_read(read, cutoff, cpg)
-        bases = list(items.keys())
-        for base in bases:
-            if base not in fhs:
-                outf_base = f'{outfile}{cpgtag}.{base}.modbed'
+        for (base, mod_code), line_items in items.items():
+            # need either a modified or an unmodified base with an aligned position;
+            # skip empty entries so we don't create spurious 0-byte output files
+            if not line_items or (line_items[6] == '.' and line_items[7] == '.'):
+                continue
+            outf_base = f'{outfile}{cpgtag}.{mod_label(base, mod_code)}.modbed'
+            if outf_base not in fhs:
                 print(f'[info] writing file {outf_base}', file=sys.stderr)
-                fhs[base] = open(outf_base, 'w')
-            out = fhs[base]
-            line_items = items[base]
-            if len(line_items):
-                # for output, need either has modified base or unmodified base
-                if line_items[6] != '.' or line_items[7] != '.':
-                    line = '\t'.join(line_items)
-                    out.write(line+'\n')
+                fhs[outf_base] = open(outf_base, 'w')
+            out = fhs[outf_base]
+            line = '\t'.join(line_items)
+            out.write(line+'\n')
 
-    for base in fhs:
-        fhs[base].close()
+    for fh in fhs.values():
+        fh.close()
         
 
 

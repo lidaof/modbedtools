@@ -86,8 +86,19 @@ optional arguments:
   -r REFERENCE, --reference REFERENCE
                         reference genome file (required for CRAM files, optional for BAM)
   -o OUTPUT, --output OUTPUT
-                        output file name, a suffix .modbed will be added. default: output
+                        output file name prefix. One file per base modification found in the
+                        input is written (see below). default: output
 ```
+
+The base and its modification(s) are detected dynamically from the `MM`/`ML` tags while the file is read a single time, and **each distinct modification is written to its own file** named `{output}[.cpg].{modification}.modbed`. For example a file that contains 5mC, 5hmC and 6mA calls produces:
+
+```sh
+output.5mC.modbed    # 5-methylcytosine  (C+m)
+output.5hmC.modbed   # 5-hydroxymethylcytosine (C+h)
+output.6mA.modbed    # N6-methyladenine  (A+a, both strands combined)
+```
+
+5mC and 5hmC are kept in separate files instead of being mixed together. Recognized modifications use their standard abbreviation (`5mC`, `5hmC`, `5fC`, `5caC`, `6mA`, `5hmU`, `8oxoG`, ...); any modification not in the standard table falls back to a `{base}{code}` name.
 
 examples:
 
