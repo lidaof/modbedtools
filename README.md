@@ -73,7 +73,7 @@ convert bam/cram files with MM/ML tags to modbed format.
 
 ```bash
 $ modbedtools bam2mod -h             
-usage: modbedtools bam2mod [-h] [-g] [-c CUTOFF] [-r REFERENCE] [-o OUTPUT] bamfile
+usage: modbedtools bam2mod [-h] [-g] [-a] [-c CUTOFF] [-r REFERENCE] [-o OUTPUT] bamfile
 
 positional arguments:
   bamfile               bam/cram file with MM/ML tags
@@ -81,6 +81,12 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -g, --cpg             output for both C/G bases in CpG, assumes base is C
+  -a, --m6a-unlisted-as-unmet
+                        for reads carrying an m6A entry (A+a or T-a) in the MM tag:
+                        treat every A the read covers that the entry does not list as
+                        unmethylated (the MM tag's implicit '.' semantics). Reads
+                        without any m6A entry are always skipped. default: off, only
+                        listed positions are used
   -c CUTOFF, --cutoff CUTOFF
                         methylation cutoff, >= cutoff as methylated. default: 0.5
   -r REFERENCE, --reference REFERENCE
@@ -99,6 +105,12 @@ output.6mA.modbed    # N6-methyladenine  (A+a, both strands combined)
 ```
 
 5mC and 5hmC are kept in separate files instead of being mixed together. Recognized modifications use their standard abbreviation (`5mC`, `5hmC`, `5fC`, `5caC`, `6mA`, `5hmU`, `8oxoG`, ...); any modification not in the standard table falls back to a `{base}{code}` name.
+
+For 6mA, only the positions listed in the `A+a`/`T-a` MM entries are used by default, and a read without any m6A entry is skipped entirely. Some callers only list the A positions considered methylated (relying on the MM tag's implicit `.` semantics: unlisted bases are assumed canonical), which leaves the unmethylated background invisible. With `-a`/`--m6a-unlisted-as-unmet`, every A covered by a read that its m6A entry does not list is additionally written as unmethylated. Each entry only fills the strand it calls (`A+a` the read-strand As, `T-a` the opposite strand), and reads without any m6A entry are still skipped, option on or off.
+
+```bash
+modbedtools bam2mod fiberseq.bam -a -o fiberseq
+```
 
 examples:
 
@@ -158,6 +170,7 @@ Then the .gz and .gz.tbi files can be placed into any web server for hosting and
 
 ## changelog
 
+* added `-a`/`--m6a-unlisted-as-unmet` option for `bam2mod`: A positions not listed in a read's m6A MM entry can be treated as unmethylated (implicit `.` semantics); reads without any m6A entry are always skipped
 * since version 0.2.0, removed `base` option for `bam2mod`
 
 ## visualization

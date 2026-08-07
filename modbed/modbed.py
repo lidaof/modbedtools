@@ -34,11 +34,16 @@ def mod_label(base, mod_code):
     return f'{base}{mod_code}'
 
 
-def process_read(read, cutoff, cpg):
+def process_read(read, cutoff, cpg, m6a_unlisted_as_unmet=False):
     '''
     convert bam file with Ml/Mm tags to bed file with methylation information in format: chr, start, end, name, score, strand, methylated position array, unmethylated position array.
     One line per read.
     if cpg mode is on: for pacbio bam, it assumes C in both strands of an CpG has same methylation level, both C will show at bp level vis
+    if m6a_unlisted_as_unmet is on: for a read that carries an m6A entry (A+a or T-a)
+    in its MM tag, every A the read covers that the entry does not list is treated as
+    unmethylated (the MM tag's implicit '.' semantics: unlisted bases are assumed
+    canonical). By default only the listed positions are used. Reads without any m6A
+    entry are always skipped for 6mA, option on or off.
     Returns a dict keyed by (base, modification code), e.g. ('C', 'm') for 5mC,
     ('C', 'h') for 5hmC, ('A', 'a') for 6mA, so different modifications on the same
     base are kept separate instead of being mixed together.
@@ -65,6 +70,7 @@ def process_read(read, cutoff, cpg):
             return {}
         modbase_keys = list(modified.keys())
         mod_dict = {} # key: (base, modification code); base can be A or C, T is combined into A. value: the output list
+        seq = None # stored query sequence, decoded lazily only when needed for m6A filling
         '''
         modified_bases keys are (canonical_base, strand, modification_code) tuples,
         the modification_code (e.g. 'm'=5mC, 'h'=5hmC, 'a'=6mA) can be a single
@@ -123,6 +129,29 @@ def process_read(read, cutoff, cpg):
                             if cpg:
                                 modbase_unmet_list.append(
                                     str(-(alignd[j[0]] - start+1)))
+            if m6a_unlisted_as_unmet and real_base in ('A', 'T') and mod_code in ('a', 28871):
+                # MM implicit '.' semantics: every A the read covers that this m6A
+                # entry does not list is assumed unmethylated. Each entry only
+                # vouches for the strand it calls: A+a for the read-strand As
+                # (stored as A on forward, as T on reverse alignments), T-a for
+                # the opposite strand. Signs follow the listed positions above:
+                # stored A -> positive offset, stored T -> negative offset.
+                if seq is None:
+                    seq = read.query_sequence or ''
+                if seq:
+                    listed = set(j[0] for j in modbase_list)
+                    stored_base = real_base if not read.is_reverse else rct[real_base]
+                    stored_lower = stored_base.lower()
+                    for qpos, refpos in align:
+                        if qpos in listed:
+                            continue
+                        b = seq[qpos]
+                        if b != stored_base and b != stored_lower:
+                            continue
+                        if stored_base == 'A':
+                            modbase_unmet_list.append(str(refpos - start))
+                        else:
+                            modbase_unmet_list.append(str(-(refpos - start)))
             if len(modbase_methy_list):
                 modbase_methy_string = ','.join(modbase_methy_list)
             if len(modbase_unmet_list):
@@ -151,7 +180,7 @@ def process_read(read, cutoff, cpg):
         return {}
 
 
-def bam2mod(bamfile, outfile, cutoff=0.5, cpg=False, reference=None):
+def bam2mod(bamfile, outfile, cutoff=0.5, cpg=False, reference=None, m6a_unlisted_as_unmet=False):
     # remove 'rb' mode for auto-detect
     # For CRAM files, reference_filename is required
     print(f'[info] reading file {bamfile}', file=sys.stderr)
@@ -173,7 +202,7 @@ def bam2mod(bamfile, outfile, cutoff=0.5, cpg=False, reference=None):
         # process_read returns a dict keyed by (base, modification code); the base
         # and modification are discovered dynamically from the reads' MM/ML tags, so
         # any base/modification present (5mC, 5hmC, 6mA, ...) gets its own output file.
-        items = process_read(read, cutoff, cpg)
+        items = process_read(read, cutoff, cpg, m6a_unlisted_as_unmet)
         for (base, mod_code), line_items in items.items():
             # need either a modified or an unmodified base with an aligned position;
             # skip empty entries so we don't create spurious 0-byte output files

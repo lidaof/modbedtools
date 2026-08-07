@@ -10,7 +10,8 @@ from modbed import modbed
 
 
 def bam2mod_wrap(args):
-    modbed.bam2mod(args.bamfile, args.output, args.cutoff, args.cpg, args.reference)
+    modbed.bam2mod(args.bamfile, args.output, args.cutoff, args.cpg,
+                   args.reference, args.m6a_unlisted_as_unmet)
 
 
 def addbg_wrap(args):
@@ -39,6 +40,12 @@ if __name__ == '__main__':
     #                             type=str.upper,
     #                             help='modification base, case in-sensitive, C/c are same. (default: %(default)s)')
     parser_bam2mod.add_argument("-g", "--cpg", help="output for both C/G bases in CpG, assumes base is C",
+                                action="store_true")
+    parser_bam2mod.add_argument("-a", "--m6a-unlisted-as-unmet",
+                                help="for reads carrying an m6A entry (A+a or T-a) in the MM tag: treat every A "
+                                     "the read covers that the entry does not list as unmethylated (the MM tag's "
+                                     "implicit '.' semantics). Reads without any m6A entry are always skipped. "
+                                     "default: off, only listed positions are used",
                                 action="store_true")
     parser_bam2mod.add_argument('-c', '--cutoff', type=float,
                                 help='methylation cutoff, >= cutoff as methylated. default: 0.5', default=0.5)
